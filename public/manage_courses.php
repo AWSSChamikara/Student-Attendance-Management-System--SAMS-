@@ -4,12 +4,21 @@ require_once __DIR__ . '/../config/app.php';
 
 requireHod();
 
+$currentUser = getCurrentUser();
+$currentRole = $currentUser['role'] ?? '';
+$isHod = ($currentRole === 'hod');
+
 $db = Database::getConnection();
 
 $batches = $db->query("SELECT * FROM academic_batches ORDER BY year_of_study ASC")->fetchAll();
 $semesters = $db->query("SELECT * FROM semesters ORDER BY semester_number ASC")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_course'])) {
+    if (!$isHod) {
+        setFlash('error', 'Access denied: Only the Head of Department (HoD) can add new courses.');
+        header('Location: manage_courses.php');
+        exit;
+    }
     $courseCode = strtoupper(trim($_POST['course_code'] ?? ''));
     $courseName = trim($_POST['course_name'] ?? '');
     $batchId = (int)$_POST['batch_id'];
@@ -94,9 +103,11 @@ require_once __DIR__ . '/layout/header.php';
         </p>
     </div>
     <div class="d-flex gap-2">
-        <button type="button" class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#newCourseModal">
-            <i class="fa-solid fa-plus me-1"></i> Add New Course
-        </button>
+        <?php if ($isHod): ?>
+            <button type="button" class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#newCourseModal">
+                <i class="fa-solid fa-plus me-1"></i> Add New Course
+            </button>
+        <?php endif; ?>
         <a href="hod_dashboard.php" class="btn btn-outline-secondary btn-sm">
             <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
         </a>
@@ -156,6 +167,7 @@ require_once __DIR__ . '/layout/header.php';
     </div>
 </div>
 
+<?php if ($isHod): ?>
 <div class="modal fade" id="newCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -210,5 +222,6 @@ require_once __DIR__ . '/layout/header.php';
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/layout/footer.php'; ?>

@@ -119,12 +119,12 @@ All accounts use the `@as.rjt.ac.lk` domain:
 
 | Role | Name | Institutional Email | Default Password | Verification Status |
 |---|---|---|---|---|
-| **Dean (Faculty of Applied Sciences)** | Prof. Dean (FAS) | `dean@as.rjt.ac.lk` | `Dean@123` | Verified |
-| **Head of Department (HoD)** | Prof. Kule | `kule@as.rjt.ac.lk` | `Admin@123` | Verified |
-| **Assistant Registrar (AR)** | Assistant Registrar | `ar@as.rjt.ac.lk` | `Admin@123` | Verified |
-| **Coordinating Lecturer** | Dr. A.W.S.S. Chamikara | `chamikara@as.rjt.ac.lk` | `Lecturer@123` | Verified |
-| **Lecturer (Practicals)** | Dr. D.N. Perera | `perera@as.rjt.ac.lk` | `Lecturer@123` | Verified |
-| **Visiting Lecturer** | Mr. Rohan Silva | `silva@as.rjt.ac.lk` | `Lecturer@123` | Verified |
+| **Dean (Faculty of Applied Sciences)** | Prof. Dean (FAS) | `dean@as.rjt.ac.lk` | **`abc123`** | Verified |
+| **Head of Department (HoD)** | Prof. Kule | `kule@as.rjt.ac.lk` | **`abc123`** | Verified |
+| **Assistant Registrar (AR)** | Assistant Registrar | `ar@as.rjt.ac.lk` | **`abc123`** | Verified |
+| **Coordinating Lecturer** | Dr. A.W.S.S. Chamikara | `chamikara@as.rjt.ac.lk` | **`abc123`** | Verified |
+| **Lecturer (Practicals)** | Dr. D.N. Perera | `perera@as.rjt.ac.lk` | **`abc123`** | Verified |
+| **Visiting Lecturer** | Mr. Rohan Silva | `silva@as.rjt.ac.lk` | **`abc123`** | Verified |
 | **Student (ICT/2024/020)** | Mrs. Rashmi Anuradha | `ict2024020@as.rjt.ac.lk` | **`200388902345`** (NIC) | Verified |
 | **Student (ICT/2024/001)** | Mr. Sunimal Perera | `ict2024001@as.rjt.ac.lk` | **`200315401234`** (NIC) | Verified |
 

@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../config/app.php';
 
 if (isLoggedIn()) {
@@ -29,7 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password_hash'])) {
 
-            if ((int)($user['is_email_verified'] ?? 0) === 0) {
+            if (in_array($user['role'], ['hod', 'dean', 'ar', 'student'], true)) {
+                if ((int)($user['is_email_verified'] ?? 0) === 0) {
+                    $db->prepare("UPDATE users SET is_email_verified = 1 WHERE id = ?")->execute([$user['id']]);
+                    $user['is_email_verified'] = 1;
+                }
+            } elseif ((int)($user['is_email_verified'] ?? 0) === 0) {
                 $code = generateVerificationCode();
                 $token = generateVerificationToken();
                 $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
@@ -80,7 +84,7 @@ require_once __DIR__ . '/layout/header.php';
 <div class="row justify-content-center align-items-stretch py-3 py-lg-4 g-4">
 
     <div class="col-lg-7 d-none d-lg-block">
-        <div class="card h-100 border-0 shadow-lg text-white overflow-hidden position-relative" style="border-radius: var(--radius-xl); background: #0f172a;">
+        <div class="card h-100 border-0 shadow-lg text-white overflow-hidden position-relative" style="border-radius: var(--radius-xl); background: #4a0000;">
 
             <div style="
                 position: absolute;
@@ -95,7 +99,7 @@ require_once __DIR__ . '/layout/header.php';
             <div style="
                 position: absolute;
                 inset: 0;
-                background: linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(30, 58, 138, 0.85) 100%);
+                background: linear-gradient(180deg, rgba(74, 0, 0, 0.55) 0%, rgba(128, 0, 0, 0.9) 100%);
             "></div>
 
             <div class="card-body p-5 d-flex flex-column justify-content-between position-relative z-1">
@@ -105,10 +109,6 @@ require_once __DIR__ . '/layout/header.php';
                         <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 backdrop-blur px-3 py-1.5 rounded-pill border border-white border-opacity-20">
                             <i class="fa-solid fa-graduation-cap text-warning"></i>
                             <span class="small fw-semibold text-white">Rajarata University of Sri Lanka</span>
-                        </div>
-                        <div class="d-inline-flex align-items-center gap-1.5 bg-primary bg-opacity-25 backdrop-blur px-3 py-1.5 rounded-pill border border-primary border-opacity-40">
-                            <i class="fa-solid fa-laptop-code text-warning" style="font-size: 0.75rem;"></i>
-                            <span class="small font-mono fw-bold text-white">http://localhost:8000</span>
                         </div>
                     </div>
 
@@ -201,11 +201,8 @@ require_once __DIR__ . '/layout/header.php';
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
                                 <input type="email" class="form-control border-start-0 font-mono" id="email" name="email"
-                                       placeholder="username@as.rjt.ac.lk"
+                                       placeholder="Institutional Email Address"
                                        value="<?= e($_POST['email'] ?? '') ?>" required autofocus>
-                            </div>
-                            <div class="form-text small text-muted">
-                                Students: <code>regno@as.rjt.ac.lk</code> &bull; Staff: <code>username@as.rjt.ac.lk</code>
                             </div>
                         </div>
 
@@ -220,10 +217,6 @@ require_once __DIR__ . '/layout/header.php';
                                 <button class="btn btn-outline-light border text-muted" type="button" onclick="togglePasswordVisibility()">
                                     <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
                                 </button>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                <span class="small text-muted" style="font-size: 0.75rem;">Imported students: initial password is NIC</span>
-                                <a href="verify_email.php" class="text-decoration-none small text-primary fw-semibold" style="font-size: 0.775rem;">Verify Email</a>
                             </div>
                         </div>
 

@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../config/app.php';
 
 requireLogin();
@@ -26,8 +25,13 @@ if (!$userData) {
 }
 
 $error = '';
-$success = '';
 $activeTab = $_GET['tab'] ?? 'profile';
+
+if (isset($_GET['cancel']) && $_GET['cancel'] == '1') {
+    unset($_SESSION['pending_password_change']);
+    header('Location: profile.php?tab=password');
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $activeTab = 'profile';
@@ -74,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         }
 
         if (empty($error)) {
-
             $upStmt = $db->prepare("
                 UPDATE users
                 SET full_name = ?, description = ?, avatar = ?
@@ -98,45 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_password_otp'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_password_change'])) {
     $activeTab = 'password';
-    $otp = generateVerificationCode();
-    $expires = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
-    $upStmt = $db->prepare("
-        UPDATE users
-        SET password_reset_code = ?, password_reset_expires_at = ?
-        WHERE id = ?
-    ");
-    $upStmt->execute([$otp, $expires, $userId]);
-
-    sendPasswordResetEmail($userData['email'], $otp, $userData['full_name']);
-
-    setFlash('info', "A 6-digit verification code has been dispatched to your institutional email ({$userData['email']}). Please check your inbox to proceed.");
-    header('Location: profile.php?tab=password&code_sent=1');
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
-    $activeTab = 'password';
-    $code = trim($_POST['verification_code'] ?? '');
     $newPass = $_POST['new_password'] ?? '';
     $confirmPass = $_POST['confirm_password'] ?? '';
 
-    if (empty($code) || empty($newPass) || empty($confirmPass)) {
-        $error = 'Please fill in the 6-digit verification code and new password fields.';
+    if (empty($newPass) || empty($confirmPass)) {
+        $error = 'Please fill in both new password fields.';
     } elseif ($newPass !== $confirmPass) {
         $error = 'The new passwords do not match. Please re-enter.';
     } elseif (strlen($newPass) < 6) {
         $error = 'New password must be at least 6 characters long.';
     } else {
-
-        if (empty($userData['password_reset_code']) || $userData['password_reset_code'] !== $code) {
-            $error = 'Invalid verification code. Please check your email or request a fresh code.';
-        } elseif (!empty($userData['password_reset_expires_at']) && strtotime($userData['password_reset_expires_at']) < time()) {
-            $error = 'The verification code has expired. Please request a new code.';
-        } else {
-
+        $noOtpRoles = ['hod', 'dean', 'ar', 'student'];
+        if (in_array($userData['role'], $noOtpRoles, true)) {
             $newHash = password_hash($newPass, PASSWORD_BCRYPT);
             $upStmt = $db->prepare("
                 UPDATE users
@@ -144,13 +122,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
                 WHERE id = ?
             ");
             $upStmt->execute([$newHash, $userId]);
+            setFlash('success', 'Your password has been changed successfully! Your account is secure.');
+            header('Location: profile.php?tab=password');
+            exit;
+        } else {
+            $otp = generateVerificationCode();
+            $expires = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
+            $upStmt = $db->prepare("
+                UPDATE users
+                SET password_reset_code = ?, password_reset_expires_at = ?
+                WHERE id = ?
+            ");
+            $upStmt->execute([$otp, $expires, $userId]);
+
+            $_SESSION['pending_password_change'] = [
+                'hash' => password_hash($newPass, PASSWORD_BCRYPT),
+                'expires' => time() + 900
+            ];
+
+            sendPasswordResetEmail($userData['email'], $otp, $userData['full_name']);
+            setFlash('info', "A 6-digit verification code has been dispatched to your institutional email ({$userData['email']}). Please enter it below to confirm your password change.");
+            header('Location: profile.php?tab=password');
+            exit;
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend_password_otp'])) {
+    $activeTab = 'password';
+    if (!empty($_SESSION['pending_password_change'])) {
+        $otp = generateVerificationCode();
+        $expires = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+        $upStmt = $db->prepare("
+            UPDATE users
+            SET password_reset_code = ?, password_reset_expires_at = ?
+            WHERE id = ?
+        ");
+        $upStmt->execute([$otp, $expires, $userId]);
+
+        $_SESSION['pending_password_change']['expires'] = time() + 900;
+
+        sendPasswordResetEmail($userData['email'], $otp, $userData['full_name']);
+        setFlash('info', "A fresh 6-digit verification code has been dispatched to {$userData['email']}.");
+        header('Location: profile.php?tab=password');
+        exit;
+    } else {
+        $error = 'Password change session expired. Please enter your new password again.';
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_password_change'])) {
+    $activeTab = 'password';
+    $code = trim($_POST['verification_code'] ?? '');
+
+    if (empty($code)) {
+        $error = 'Please enter the 6-digit verification code sent to your email.';
+    } elseif (empty($_SESSION['pending_password_change']['hash'])) {
+        $error = 'Password change session has expired. Please enter your new password again.';
+    } else {
+        $stmt = $db->prepare("SELECT password_reset_code, password_reset_expires_at FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+
+        if (empty($row['password_reset_code']) || $row['password_reset_code'] !== $code) {
+            $error = 'Invalid verification code. Please check your email and try again.';
+        } elseif (!empty($row['password_reset_expires_at']) && strtotime($row['password_reset_expires_at']) < time()) {
+            $error = 'The verification code has expired. Please click resend to receive a fresh code.';
+        } else {
+            $newHash = $_SESSION['pending_password_change']['hash'];
+            $upStmt = $db->prepare("
+                UPDATE users
+                SET password_hash = ?, password_reset_code = NULL, password_reset_expires_at = NULL
+                WHERE id = ?
+            ");
+            $upStmt->execute([$newHash, $userId]);
+
+            unset($_SESSION['pending_password_change']);
             setFlash('success', 'Your password has been changed successfully! Your account is secure.');
             header('Location: profile.php?tab=password');
             exit;
         }
     }
 }
+
+$isNoOtpRole = in_array($userData['role'], ['hod', 'dean', 'ar', 'student'], true);
+$hasPendingChange = !$isNoOtpRole && !empty($_SESSION['pending_password_change']) && ($_SESSION['pending_password_change']['expires'] > time());
 
 $currentAvatar = 'assets/images/avatar_student.jpg';
 if (!empty($userData['avatar']) && file_exists(__DIR__ . '/' . $userData['avatar'])) {
@@ -192,7 +250,13 @@ require_once __DIR__ . '/layout/header.php';
                         $roleLabel = 'Assistant Registrar (AR)';
                     } elseif ($userData['role'] === 'lecturer') {
                         $roleBadgeClass = 'bg-primary';
-                        $roleLabel = 'Academic Staff';
+                        if (str_contains(strtolower($userData['description'] ?? ''), 'demonstrator')) {
+                            $roleLabel = 'Demonstrator';
+                        } elseif (!empty($userData['is_external_lecturer'])) {
+                            $roleLabel = 'Visiting Academic';
+                        } else {
+                            $roleLabel = 'Academic Staff';
+                        }
                     } elseif ($userData['role'] === 'student') {
                         $roleBadgeClass = 'bg-success';
                         $roleLabel = 'Undergraduate Student';
@@ -254,7 +318,7 @@ require_once __DIR__ . '/layout/header.php';
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $activeTab === 'password' ? 'active fw-bold text-primary' : 'text-muted' ?>" href="profile.php?tab=password">
-                            <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Change Password with Email Verification
+                            <i class="fa-solid fa-key me-2 text-warning"></i> Change Password
                         </a>
                     </li>
                 </ul>
@@ -318,60 +382,75 @@ require_once __DIR__ . '/layout/header.php';
                     <div>
                         <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-3 mb-4">
                             <div class="bg-warning text-dark rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                <i class="fa-solid fa-envelope-shield fs-5"></i>
+                                <i class="fa-solid fa-key fs-5 text-warning"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0">Email-Verified Password Change</h6>
+                                <h6 class="fw-bold text-dark mb-0">Change Account Password</h6>
                                 <p class="text-muted small mb-0">
-                                    To protect university accounts from unauthorized access, password updates require verification through an OTP code sent to your registered institutional email (<code><?= e($userData['email']) ?></code>).
+                                    <?php if (in_array($userData['role'], ['hod', 'dean', 'ar', 'student'], true)): ?>
+                                        Enter and confirm your new password below.
+                                    <?php else: ?>
+                                        Updating your password requires verification via a 6-digit OTP code dispatched to your institutional email: <code><?= e($userData['email']) ?></code>.
+                                    <?php endif; ?>
                                 </p>
                             </div>
                         </div>
 
-                        <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 p-3 mb-4 rounded-3">
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <?php if ($hasPendingChange): ?>
+                            <div class="alert alert-warning border-0 d-flex align-items-center mb-4" role="alert" style="background-color: #fffbeb; color: #92400e; border-left: 4px solid #f59e0b !important; border-radius: var(--radius-sm);">
+                                <i class="fa-solid fa-envelope-circle-check me-2 fs-5 text-warning"></i>
                                 <div>
-                                    <div class="fw-bold text-dark small"><i class="fa-solid fa-paper-plane me-1 text-warning"></i> Request Password Verification OTP</div>
-                                    <div class="text-muted small">Click to send a fresh 6-digit code to <strong><?= e($userData['email']) ?></strong></div>
+                                    A 6-digit verification code has been dispatched to <strong><?= e($userData['email']) ?></strong>. Enter the code below to complete your password change.
                                 </div>
-                                <form method="POST" action="profile.php?tab=password" class="m-0">
-                                    <input type="hidden" name="request_password_otp" value="1">
-                                    <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark shadow-sm">
-                                        <i class="fa-solid fa-paper-plane me-1"></i> Send Verification Code
+                            </div>
+
+                            <form method="POST" action="profile.php?tab=password">
+                                <div class="mb-4">
+                                    <label class="form-label small fw-semibold text-dark">6-Digit Verification Code</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-key"></i></span>
+                                        <input type="text" class="form-control form-control-lg border-start-0 font-mono text-center fw-extrabold text-primary"
+                                               name="verification_code" id="verificationCodeInput" placeholder="&bull; &bull; &bull; &bull; &bull; &bull;" maxlength="6" autofocus required
+                                               style="letter-spacing: 0.35rem; font-size: 1.5rem;">
+                                    </div>
+                                    <div class="form-text small text-muted text-center mt-1">
+                                        Check your inbox or spam folder for the code from <code>no-reply@as.rjt.ac.lk</code>.
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <button type="submit" name="resend_password_otp" class="btn btn-link btn-sm p-0 text-decoration-none text-muted fw-semibold">
+                                            <i class="fa-solid fa-rotate-right me-1"></i> Resend Code
+                                        </button>
+                                        <span class="text-muted mx-2">&bull;</span>
+                                        <a href="profile.php?tab=password&cancel=1" class="text-muted small text-decoration-none">Cancel</a>
+                                    </div>
+                                    <button type="submit" name="confirm_password_change" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                                        <i class="fa-solid fa-shield-check me-1.5"></i> Confirm &amp; Update Password
                                     </button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <form method="POST" action="profile.php?tab=password">
-                            <input type="hidden" name="change_password" value="1">
-
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-dark">6-Digit Email Verification Code</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-key"></i></span>
-                                    <input type="text" class="form-control font-mono fs-5 fw-bold text-primary" name="verification_code" id="verificationCodeInput" placeholder="Enter 6-digit OTP code" maxlength="6" required>
                                 </div>
-                                <div class="form-text small text-muted">Check your inbox for the code sent from <code>no-reply@as.rjt.ac.lk</code>.</div>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-dark">New Password</label>
-                                    <input type="password" class="form-control" name="new_password" placeholder="At least 6 characters" required>
+                            </form>
+                        <?php else: ?>
+                            <form method="POST" action="profile.php?tab=password">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark">New Password</label>
+                                        <input type="password" class="form-control" name="new_password" placeholder="Minimum 6 characters" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark">Confirm New Password</label>
+                                        <input type="password" class="form-control" name="confirm_password" placeholder="Confirm new password" required>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-dark">Confirm New Password</label>
-                                    <input type="password" class="form-control" name="confirm_password" placeholder="Re-type new password" required>
-                                </div>
-                            </div>
 
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
-                                    <i class="fa-solid fa-shield-check me-1.5"></i> Verify &amp; Update Password
-                                </button>
-                            </div>
-                        </form>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" name="request_password_change" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                                        <i class="fa-solid fa-key me-1.5"></i> Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>

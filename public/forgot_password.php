@@ -119,14 +119,14 @@ require_once __DIR__ . '/layout/header.php';
                         <input type="hidden" name="request_code" value="1">
 
                         <p class="small text-muted mb-3">
-                            Enter your official university email (<code>username@as.rjt.ac.lk</code>). We will dispatch a 6-digit verification code to confirm ownership.
+                            Enter your registered institutional university email. A 6-digit verification code will be dispatched to confirm ownership.
                         </p>
 
                         <div class="mb-4">
                             <label class="form-label small fw-semibold text-dark">Institutional Email Address</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" class="form-control font-mono" name="email" value="<?= e($email) ?>" placeholder="username@as.rjt.ac.lk" required autofocus>
+                                <input type="email" class="form-control font-mono" name="email" value="<?= e($email) ?>" placeholder="Institutional Email Address" required autofocus>
                             </div>
                         </div>
 

@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/../config/app.php';
 
 $db = Database::getConnection();
@@ -25,11 +24,39 @@ if (!empty($token) && !empty($email)) {
             WHERE id = ?
         ");
         $updateStmt->execute([$user['id']]);
-        setFlash('success', 'Email verified successfully! Your university account is now active. You may sign in.');
-        header('Location: index.php');
+
+        $uStmt = $db->prepare("
+            SELECT u.*, s.reg_number, s.index_number, s.title, s.batch_id, s.nic
+            FROM users u
+            LEFT JOIN students s ON u.student_id = s.id
+            WHERE u.id = ?
+        ");
+        $uStmt->execute([$user['id']]);
+        $loggedUser = $uStmt->fetch();
+        if ($loggedUser) {
+            $_SESSION['user'] = [
+                'id' => (int)$loggedUser['id'],
+                'email' => $loggedUser['email'],
+                'full_name' => $loggedUser['full_name'],
+                'role' => $loggedUser['role'],
+                'staff_id' => $loggedUser['staff_id'],
+                'is_external_lecturer' => (bool)$loggedUser['is_external_lecturer'],
+                'student_id' => $loggedUser['student_id'] ? (int)$loggedUser['student_id'] : null,
+                'reg_number' => $loggedUser['reg_number'] ?? null,
+                'index_number' => $loggedUser['index_number'] ?? null,
+                'title' => $loggedUser['title'] ?? null,
+                'batch_id' => $loggedUser['batch_id'] ?? null,
+                'avatar' => $loggedUser['avatar'] ?? null,
+                'description' => $loggedUser['description'] ?? null,
+                'nic' => $loggedUser['nic'] ?? null
+            ];
+        }
+
+        setFlash('success', 'Email verified successfully! Welcome to Rajarata University SAMS.');
+        header('Location: dashboard.php');
         exit;
     } else {
-        $error = 'The verification link is invalid or has expired. Please request a new verification code below.';
+        $error = 'The verification link is invalid or has expired. Please enter the 6-digit verification code below.';
     }
 }
 
@@ -52,7 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_code'])) {
         } elseif ($user['verification_code'] !== $code) {
             $error = 'The verification code you entered is incorrect. Please check your inbox or request a new code.';
         } else {
-
             if (!empty($user['verification_expires_at']) && strtotime($user['verification_expires_at']) < time()) {
                 $error = 'This verification code has expired. Please click "Resend Code" to receive a new one.';
             } else {
@@ -62,8 +88,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_code'])) {
                     WHERE id = ?
                 ");
                 $updateStmt->execute([$user['id']]);
-                setFlash('success', 'Email verification successful! Welcome to Rajarata University SAMS. You may now sign in.');
-                header('Location: index.php');
+
+                $uStmt = $db->prepare("
+                    SELECT u.*, s.reg_number, s.index_number, s.title, s.batch_id, s.nic
+                    FROM users u
+                    LEFT JOIN students s ON u.student_id = s.id
+                    WHERE u.id = ?
+                ");
+                $uStmt->execute([$user['id']]);
+                $loggedUser = $uStmt->fetch();
+                if ($loggedUser) {
+                    $_SESSION['user'] = [
+                        'id' => (int)$loggedUser['id'],
+                        'email' => $loggedUser['email'],
+                        'full_name' => $loggedUser['full_name'],
+                        'role' => $loggedUser['role'],
+                        'staff_id' => $loggedUser['staff_id'],
+                        'is_external_lecturer' => (bool)$loggedUser['is_external_lecturer'],
+                        'student_id' => $loggedUser['student_id'] ? (int)$loggedUser['student_id'] : null,
+                        'reg_number' => $loggedUser['reg_number'] ?? null,
+                        'index_number' => $loggedUser['index_number'] ?? null,
+                        'title' => $loggedUser['title'] ?? null,
+                        'batch_id' => $loggedUser['batch_id'] ?? null,
+                        'avatar' => $loggedUser['avatar'] ?? null,
+                        'description' => $loggedUser['description'] ?? null,
+                        'nic' => $loggedUser['nic'] ?? null
+                    ];
+                }
+
+                setFlash('success', 'Email verification successful! Welcome to Rajarata University SAMS.');
+                header('Location: dashboard.php');
                 exit;
             }
         }
@@ -101,18 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend_code'])) {
             header('Location: verify_email.php?email=' . urlencode($email));
             exit;
         }
-    }
-}
-
-$simulatedCode = '';
-$simulatedToken = '';
-if (!empty($email)) {
-    $stmt = $db->prepare("SELECT verification_code, verification_token FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $uRow = $stmt->fetch();
-    if ($uRow && $uRow['verification_code']) {
-        $simulatedCode = $uRow['verification_code'];
-        $simulatedToken = $uRow['verification_token'];
     }
 }
 
@@ -156,7 +198,7 @@ require_once __DIR__ . '/layout/header.php';
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
                             <input type="email" class="form-control border-start-0 font-mono" name="email" id="emailInput"
-                                   placeholder="username@as.rjt.ac.lk"
+                                   placeholder="Institutional Email Address"
                                    value="<?= e($email) ?>" required>
                         </div>
                     </div>

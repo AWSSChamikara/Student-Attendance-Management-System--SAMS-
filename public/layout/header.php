@@ -39,41 +39,10 @@ if (!empty($user['avatar']) && file_exists(__DIR__ . '/../' . $user['avatar'])) 
 </head>
 <body>
 
-    <div class="institutional-topbar py-1 px-3 d-none d-md-block">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <span>
-                    <i class="fa-solid fa-graduation-cap me-1 text-warning"></i>
-                    <strong><?= e(APP_UNIVERSITY) ?></strong> &bull; <?= e(APP_FACULTY) ?>
-                </span>
-                <span class="text-white-50">&bull;</span>
-                <span class="text-white-50"><i class="fa-solid fa-code me-1 text-info"></i> <?= e(APP_DEPT) ?></span>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <a href="http://localhost:8000" class="badge bg-primary text-white text-decoration-none px-2.5 py-1 font-mono shadow-sm" title="Local Development: http://localhost:8000">
-                    <i class="fa-solid fa-laptop-code me-1 text-warning"></i> localhost:8000
-                </a>
-                <span class="text-white-50">&bull;</span>
-                <a href="mailto:helpdesk@as.rjt.ac.lk" class="small"><i class="fa-solid fa-headset me-1 text-warning"></i> FAS IT Help Desk</a>
-                <span class="text-white-50">&bull;</span>
-                <span class="badge bg-warning text-dark font-mono px-2 py-0.5" style="font-size: 0.675rem;">EIS v2.4</span>
-            </div>
-        </div>
-    </div>
-
     <nav class="navbar navbar-expand-lg navbar-dark navbar-sams sticky-top">
         <div class="container-fluid px-3">
-            <a class="navbar-brand d-flex align-items-center py-0" href="dashboard.php">
-                <img src="assets/images/rusl_logo_white.svg" alt="RUSL" height="38" class="me-2 d-none d-sm-inline-block">
-                <div class="d-sm-none d-flex align-items-center">
-                    <div class="bg-primary-subtle text-primary rounded p-1 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-graduation-cap fs-5"></i>
-                    </div>
-                    <div>
-                        <span class="fs-6 fw-bold text-white"><?= e(APP_SHORT_NAME) ?></span>
-                        <div class="text-white-50" style="font-size: 0.65rem;">Rajarata University</div>
-                    </div>
-                </div>
+            <a class="navbar-brand d-flex align-items-center py-0" href="<?= isLoggedIn() ? 'dashboard.php' : 'index.php' ?>">
+                <img src="assets/images/rusl_logo_white.svg" alt="Rajarata University of Sri Lanka" height="38" class="me-2 d-inline-block">
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#samsNavbar" aria-controls="samsNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,9 +168,6 @@ if (!empty($user['avatar']) && file_exists(__DIR__ . '/../' . $user['avatar'])) 
                     <ul class="navbar-nav ms-auto align-items-center">
                         <li class="nav-item">
                             <a class="nav-link" href="register.php"><i class="fa-solid fa-user-plus me-1 text-warning"></i> Staff Registration</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="verify_email.php"><i class="fa-solid fa-envelope-circle-check me-1 text-info"></i> Verify Email</a>
                         </li>
                         <li class="nav-item ms-lg-2">
                             <a class="btn btn-warning btn-sm text-dark fw-bold px-3 shadow-sm" href="index.php">

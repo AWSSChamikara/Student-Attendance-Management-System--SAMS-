@@ -118,9 +118,11 @@ require_once __DIR__ . '/layout/header.php';
                     <a href="mahapola_verification.php" class="btn btn-warning btn-sm fw-bold text-dark shadow-sm">
                         <i class="fa-solid fa-award me-1.5"></i> Mahapola (80%)
                     </a>
-                    <a href="manage_courses.php" class="btn btn-primary btn-sm fw-bold shadow-sm">
-                        <i class="fa-solid fa-plus me-1.5"></i> Add Course
-                    </a>
+                    <?php if ($userRole === 'hod'): ?>
+                        <a href="manage_courses.php" class="btn btn-primary btn-sm fw-bold shadow-sm">
+                            <i class="fa-solid fa-plus me-1.5"></i> Add Course
+                        </a>
+                    <?php endif; ?>
                     <a href="profile.php" class="btn btn-outline-light btn-sm fw-bold shadow-sm">
                         <i class="fa-solid fa-user-pen me-1.5"></i> Edit Profile
                     </a>

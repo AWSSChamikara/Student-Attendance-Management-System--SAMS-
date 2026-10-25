@@ -22,15 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Password must be at least 6 characters long.';
     } else {
         $isExternal = ($roleInput === 'visiting') ? 1 : 0;
-        $dbRole = ($roleInput === 'visiting') ? 'lecturer' : (in_array($roleInput, ['lecturer', 'hod', 'ar', 'dean']) ? $roleInput : 'lecturer');
+        $dbRole = 'lecturer';
+        $defaultDesc = match ($roleInput) {
+            'demonstrator' => 'Demonstrator, Department of Computing.',
+            'visiting' => 'Visiting Academic / Lecturer, Department of Computing.',
+            default => 'Lecturer, Department of Computing.'
+        };
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         $verificationCode = generateVerificationCode();
         $verificationToken = generateVerificationToken();
         $verificationExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
         $uStmt = $db->prepare("
-            INSERT INTO users (email, password_hash, full_name, role, staff_id, is_external_lecturer, is_email_verified, verification_code, verification_token, verification_expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+            INSERT INTO users (email, password_hash, full_name, role, staff_id, is_external_lecturer, is_email_verified, verification_code, verification_token, verification_expires_at, description)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 password_hash = VALUES(password_hash),
                 full_name = VALUES(full_name),
@@ -39,9 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 is_external_lecturer = VALUES(is_external_lecturer),
                 verification_code = VALUES(verification_code),
                 verification_token = VALUES(verification_token),
-                verification_expires_at = VALUES(verification_expires_at)
+                verification_expires_at = VALUES(verification_expires_at),
+                description = VALUES(description)
         ");
-        $uStmt->execute([$email, $passwordHash, $fullName, $dbRole, $staffId, $isExternal, $verificationCode, $verificationToken, $verificationExpires]);
+        $uStmt->execute([$email, $passwordHash, $fullName, $dbRole, $staffId, $isExternal, $verificationCode, $verificationToken, $verificationExpires, $defaultDesc]);
 
         sendVerificationEmail($email, $verificationCode, $verificationToken, $fullName);
         setFlash('info', "Registration submitted successfully. A 6-digit verification code has been dispatched to {$email}. Please verify below to activate your account.");
@@ -57,7 +63,7 @@ require_once __DIR__ . '/layout/header.php';
 <div class="row justify-content-center py-4">
     <div class="col-md-8 col-lg-7">
         <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: var(--radius-xl);">
-            <div class="position-relative text-white p-4 p-md-5" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+            <div class="position-relative text-white p-4 p-md-5" style="background: linear-gradient(135deg, #4a0000 0%, #800000 100%);">
                 <div style="position: absolute; inset: 0; background-image: url('assets/images/university_hall.jpg'); background-size: cover; background-position: center; opacity: 0.22;"></div>
                 <div class="position-relative z-1 d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
@@ -92,10 +98,8 @@ require_once __DIR__ . '/layout/header.php';
                             <label class="form-label small fw-semibold text-dark">Academic Designation</label>
                             <select name="staff_role" class="form-select" required>
                                 <option value="lecturer" <?= (($_POST['staff_role'] ?? '') === 'lecturer') ? 'selected' : '' ?>>Lecturer / Senior Lecturer</option>
+                                <option value="demonstrator" <?= (($_POST['staff_role'] ?? '') === 'demonstrator') ? 'selected' : '' ?>>Demonstrator</option>
                                 <option value="visiting" <?= (($_POST['staff_role'] ?? '') === 'visiting') ? 'selected' : '' ?>>Visiting Academic / Lecturer</option>
-                                <option value="hod" <?= (($_POST['staff_role'] ?? '') === 'hod') ? 'selected' : '' ?>>Head of Department (HoD)</option>
-                                <option value="ar" <?= (($_POST['staff_role'] ?? '') === 'ar') ? 'selected' : '' ?>>Assistant Registrar (AR)</option>
-                                <option value="dean" <?= (($_POST['staff_role'] ?? '') === 'dean') ? 'selected' : '' ?>>Dean - Faculty of Applied Sciences</option>
                             </select>
                         </div>
 
@@ -109,10 +113,10 @@ require_once __DIR__ . '/layout/header.php';
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
                                 <input type="email" class="form-control border-start-0 font-mono" name="email"
-                                       placeholder="username@as.rjt.ac.lk" value="<?= e($_POST['email'] ?? '') ?>" required>
+                                       placeholder="Institutional Email Address" value="<?= e($_POST['email'] ?? '') ?>" required>
                             </div>
                             <div class="form-text small text-muted mt-1">
-                                Must be an official university address ending with <code>@as.rjt.ac.lk</code>.
+                                Official university address ending with <code>@as.rjt.ac.lk</code>.
                             </div>
                         </div>
 
@@ -134,8 +138,7 @@ require_once __DIR__ . '/layout/header.php';
                     </div>
 
                     <div class="text-center small text-muted mt-3">
-                        Already have an active account? <a href="index.php" class="text-decoration-none fw-bold text-primary">Sign In</a> &bull;
-                        <a href="verify_email.php" class="text-decoration-none fw-semibold text-warning">Verify Pending Email</a>
+                        Already have an active account? <a href="index.php" class="text-decoration-none fw-bold text-primary">Sign In</a>
                     </div>
                 </form>
             </div>

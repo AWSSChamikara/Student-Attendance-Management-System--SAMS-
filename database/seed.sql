@@ -24,13 +24,13 @@ INSERT INTO `semesters` (`id`, `semester_number`, `academic_year`, `is_current`,
 ON DUPLICATE KEY UPDATE `is_current` = VALUES(`is_current`);
 
 INSERT INTO `users` (`id`, `email`, `password_hash`, `full_name`, `role`, `staff_id`, `is_external_lecturer`, `student_id`, `is_email_verified`, `description`) VALUES
-(1, 'dean@as.rjt.ac.lk', '$2y$10$A4OMT.53UIQhamTOcWR0uOo1D.le7nEQCj8bgQkVtDqmkipXKsyCe', 'Prof. Dean', 'dean', 'STF-FAS-001', 0, NULL, 1, 'Dean, Faculty of Applied Sciences (FAS), Rajarata University of Sri Lanka.'),
-(2, 'kule@as.rjt.ac.lk', '$2y$10$KOQjhrdCW/HMpbQRhHOdPeUj8EVZDZzRhMFnQYsuypATe3a/Fiegu', 'Prof. Kule', 'hod', 'STF-DOC-001', 0, NULL, 1, 'Head of Department (HoD), Department of Computing, Faculty of Applied Sciences.'),
-(3, 'ar@as.rjt.ac.lk', '$2y$10$KOQjhrdCW/HMpbQRhHOdPeUj8EVZDZzRhMFnQYsuypATe3a/Fiegu', 'Assistant Registrar (AR)', 'ar', 'STF-FAS-AR', 0, NULL, 1, 'Assistant Registrar, Examination and Student Records, Faculty of Applied Sciences.'),
-(4, 'chamikara@as.rjt.ac.lk', '$2y$10$PhAFf9uZ.mv/HTUsla5aTe61bCa0phlKxVfJDQlUHH7/pz57R34ce', 'Dr. A.W.S.S. Chamikara', 'lecturer', 'STF-DOC-012', 0, NULL, 1, 'Senior Lecturer in Computer Science & Coordinating Lecturer for DBMS.'),
-(5, 'perera@as.rjt.ac.lk', '$2y$10$PhAFf9uZ.mv/HTUsla5aTe61bCa0phlKxVfJDQlUHH7/pz57R34ce', 'Dr. D.N. Perera', 'lecturer', 'STF-DOC-018', 0, NULL, 1, 'Senior Lecturer & Practical Course Coordinator.'),
-(6, 'silva@as.rjt.ac.lk', '$2y$10$PhAFf9uZ.mv/HTUsla5aTe61bCa0phlKxVfJDQlUHH7/pz57R34ce', 'Mr. Rohan Silva', 'lecturer', 'EXT-DOC-005', 1, NULL, 1, 'Visiting Industry Academic in Software Engineering.')
-ON DUPLICATE KEY UPDATE `full_name` = VALUES(`full_name`), `email` = VALUES(`email`), `is_email_verified` = VALUES(`is_email_verified`);
+(1, 'dean@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Prof. Dean', 'dean', 'STF-FAS-001', 0, NULL, 1, 'Dean, Faculty of Applied Sciences (FAS), Rajarata University of Sri Lanka.'),
+(2, 'kule@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Prof. Kule', 'hod', 'STF-DOC-001', 0, NULL, 1, 'Head of Department (HoD), Department of Computing, Faculty of Applied Sciences.'),
+(3, 'ar@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Assistant Registrar (AR)', 'ar', 'STF-FAS-AR', 0, NULL, 1, 'Assistant Registrar, Examination and Student Records, Faculty of Applied Sciences.'),
+(4, 'chamikara@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Dr. A.W.S.S. Chamikara', 'lecturer', 'STF-DOC-012', 0, NULL, 1, 'Senior Lecturer in Computer Science & Coordinating Lecturer for DBMS.'),
+(5, 'perera@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Dr. D.N. Perera', 'lecturer', 'STF-DOC-018', 0, NULL, 1, 'Senior Lecturer & Practical Course Coordinator.'),
+(6, 'silva@as.rjt.ac.lk', '$2y$10$8UVS0MPuyeg82QZjXvjPZuC0zDyWBsh97ojBq4vbJkIbnLV85yOXy', 'Mr. Rohan Silva', 'lecturer', 'EXT-DOC-005', 1, NULL, 1, 'Visiting Industry Academic in Software Engineering.')
+ON DUPLICATE KEY UPDATE `full_name` = VALUES(`full_name`), `email` = VALUES(`email`), `password_hash` = VALUES(`password_hash`), `is_email_verified` = VALUES(`is_email_verified`);
 
 INSERT INTO `students` (`id`, `reg_number`, `index_number`, `nic`, `name`, `gender`, `title`, `batch_id`, `is_mahapola`, `is_bursary`, `email`) VALUES
 (1, 'ICT/2024/001', 'ICT2024001', '200315401234', 'Sunimal Perera', 'Male', 'Mr', 1, 1, 0, 'ict2024001@as.rjt.ac.lk'),

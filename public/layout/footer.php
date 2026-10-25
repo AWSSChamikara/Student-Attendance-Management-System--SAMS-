@@ -22,21 +22,14 @@
 
                 <div class="col-md-4 text-center">
                     <div class="d-flex justify-content-center gap-3 small text-white-50">
-                        <a href="http://localhost:8000" class="text-warning"><i class="fa-solid fa-laptop-code me-1"></i> localhost:8000</a>
-                        <span>&bull;</span>
-                        <a href="https://www.rjt.ac.lk" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-1 text-primary"></i> RUSL Web</a>
+                        <a href="https://www.rjt.ac.lk" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-1 text-warning"></i> RUSL Web</a>
                         <span>&bull;</span>
                         <a href="mailto:helpdesk@as.rjt.ac.lk"><i class="fa-solid fa-envelope me-1 text-warning"></i> IT Support</a>
-                        <span>&bull;</span>
-                        <a href="verify_email.php"><i class="fa-solid fa-shield-halved me-1 text-info"></i> Security</a>
                     </div>
                 </div>
 
                 <div class="col-md-3 text-center text-md-end">
-                    <span class="badge bg-dark border border-secondary text-white-50 px-3 py-1 font-mono">
-                        <i class="fa-solid fa-circle text-success me-1" style="font-size: 0.5rem;"></i> System Online (v2.4.0)
-                    </span>
-                    <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                    <div class="text-muted" style="font-size: 0.75rem;">
                         &copy; <?= date('Y') ?> Department of Computing. All rights reserved.
                     </div>
                 </div>

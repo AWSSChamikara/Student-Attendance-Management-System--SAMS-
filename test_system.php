@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/services/EligibilityService.php';
 require_once __DIR__ . '/services/EisImporter.php';
@@ -57,7 +56,7 @@ assert(password_verify($sampleStudent['nic'], $studentUser['password_hash']), "S
 echo "  Student password matches NIC ({$sampleStudent['nic']}): YES\n";
 echo "  -> PASSED\n\n";
 
-echo "[TEST 4] Verifying Staff Institutional Emails (Dean, HoD, AR)...\n";
+echo "[TEST 4] Verifying Pre-Seeded Staff (HoD, Dean, AR) & Student Accounts Do NOT Require Email Verification...\n";
 $dean = $db->query("SELECT * FROM users WHERE email = 'dean@as.rjt.ac.lk'")->fetch();
 $hod = $db->query("SELECT * FROM users WHERE email = 'kule@as.rjt.ac.lk'")->fetch();
 $ar = $db->query("SELECT * FROM users WHERE email = 'ar@as.rjt.ac.lk'")->fetch();
@@ -66,13 +65,18 @@ assert(!empty($dean), "Dean account dean@as.rjt.ac.lk must exist");
 assert(!empty($hod), "HoD account kule@as.rjt.ac.lk must exist");
 assert(!empty($ar), "AR account ar@as.rjt.ac.lk must exist");
 
-echo "  Dean Account: {$dean['full_name']} ({$dean['email']}, Role: {$dean['role']})\n";
-echo "  HoD Account:  {$hod['full_name']} ({$hod['email']}, Role: {$hod['role']})\n";
-echo "  AR Account:   {$ar['full_name']} ({$ar['email']}, Role: {$ar['role']})\n";
+echo "  Dean Account: {$dean['full_name']} ({$dean['email']}, Role: {$dean['role']}, Verified: {$dean['is_email_verified']})\n";
+echo "  HoD Account:  {$hod['full_name']} ({$hod['email']}, Role: {$hod['role']}, Verified: {$hod['is_email_verified']})\n";
+echo "  AR Account:   {$ar['full_name']} ({$ar['email']}, Role: {$ar['role']}, Verified: {$ar['is_email_verified']})\n";
 
-assert(isInstitutionalEmail('dean@as.rjt.ac.lk'), "dean@as.rjt.ac.lk must be institutional email");
-assert(isInstitutionalEmail('kule@as.rjt.ac.lk'), "kule@as.rjt.ac.lk must be institutional email");
-assert(isInstitutionalEmail('ar@as.rjt.ac.lk'), "ar@as.rjt.ac.lk must be institutional email");
+assert((int)$dean['is_email_verified'] === 1, "Dean must have is_email_verified = 1 (no email verification needed)");
+assert((int)$hod['is_email_verified'] === 1, "HoD must have is_email_verified = 1 (no email verification needed)");
+assert((int)$ar['is_email_verified'] === 1, "AR must have is_email_verified = 1 (no email verification needed)");
+
+assert(password_verify('abc123', $dean['password_hash']), "Dean password must verify with abc123");
+assert(password_verify('abc123', $hod['password_hash']), "HoD password must verify with abc123");
+assert(password_verify('abc123', $ar['password_hash']), "AR password must verify with abc123");
+echo "  Staff default passwords match 'abc123': YES\n";
 echo "  -> PASSED\n\n";
 
 echo "[TEST 5] Verifying 6-Digit OTP Email Verification & Password Reset Workflow...\n";
@@ -146,4 +150,58 @@ assert(in_array('nic', $studentCols, true), "students table must contain nic col
 echo "  Avatar, description, password_reset_code, and nic columns: VERIFIED\n";
 echo "  -> PASSED\n\n";
 
-echo "=== ALL 8 COMPREHENSIVE TESTS PASSED WITH 100% SUCCESS FOR RAJARATA UNIVERSITY SAMS! ===\n";
+echo "[TEST 9] Verifying Registration Strictly Restricted to Academic Staff...\n";
+$registerContent = file_get_contents(__DIR__ . '/public/register.php');
+assert(!str_contains($registerContent, 'value="hod"'), "register.php must NOT have hod option");
+assert(!str_contains($registerContent, 'value="dean"'), "register.php must NOT have dean option");
+assert(!str_contains($registerContent, 'value="ar"'), "register.php must NOT have ar option");
+assert(str_contains($registerContent, 'value="lecturer"'), "register.php must have lecturer option");
+assert(str_contains($registerContent, 'value="demonstrator"'), "register.php must have demonstrator option");
+assert(str_contains($registerContent, 'value="visiting"'), "register.php must have visiting option");
+assert(!str_contains($registerContent, 'Verify Pending Email'), "register.php must NOT contain Verify Pending Email link");
+echo "  Registration restricted to Academic Staff (Lecturers / Demonstrator / Visiting): VERIFIED\n";
+echo "  -> PASSED\n\n";
+
+echo "[TEST 10] Verifying No Standalone Email Verification Buttons in Navigation & Layouts...\n";
+$headerContent = file_get_contents(__DIR__ . '/public/layout/header.php');
+assert(!str_contains($headerContent, 'verify_email.php'), "header.php must NOT contain any verify_email.php button/link");
+
+$footerContent = file_get_contents(__DIR__ . '/public/layout/footer.php');
+assert(!str_contains($footerContent, 'verify_email.php'), "footer.php must NOT contain any verify_email.php button/link");
+
+$indexContent = file_get_contents(__DIR__ . '/public/index.php');
+assert(!str_contains($indexContent, '<a href="verify_email.php"'), "index.php must NOT contain standalone Verify Email link");
+
+$profileContent = file_get_contents(__DIR__ . '/public/profile.php');
+assert(!str_contains($profileContent, 'name="request_password_otp"'), "profile.php must NOT contain separate Request OTP button");
+echo "  No standalone Verify Email buttons in header, footer, index, or profile: VERIFIED\n";
+echo "  -> PASSED\n\n";
+
+echo "[TEST 11] Verifying Theme Color (#800000 Maroon) & Security Information Removal...\n";
+$cssContent = file_get_contents(__DIR__ . '/public/assets/css/style.css');
+assert(str_contains($cssContent, '--primary: #800000;'), "style.css must have --primary: #800000 (Maroon)");
+
+assert(!str_contains($indexContent, 'initial password is NIC'), "index.php must NOT show 'initial password is NIC'");
+assert(!str_contains($indexContent, 'Students: <code>regno@as.rjt.ac.lk'), "index.php must NOT show 'Students: regno@as.rjt.ac.lk'");
+assert(!str_contains($indexContent, 'localhost:8000'), "index.php must NOT show 'localhost:8000'");
+assert(!str_contains($headerContent, 'localhost:8000'), "header.php must NOT show 'localhost:8000'");
+assert(!str_contains($footerContent, 'localhost:8000'), "footer.php must NOT show 'localhost:8000'");
+assert(!str_contains($headerContent, 'institutional-topbar'), "header.php must NOT contain institutional-topbar");
+assert(!str_contains($footerContent, 'System Online'), "footer.php must NOT contain System Online badge");
+$logoXml = simplexml_load_file(__DIR__ . '/public/assets/images/rusl_logo_white.svg');
+assert($logoXml !== false, "rusl_logo_white.svg must be valid XML");
+echo "  Maroon theme (#800000), topbar/footer cleanup, and valid RUSL logo: VERIFIED\n";
+echo "  -> PASSED\n\n";
+
+echo "[TEST 12] Verifying 'Add Course' Option Exclusively for HoD (Not for Dean or AR)...\n";
+$hodDashContent = file_get_contents(__DIR__ . '/public/hod_dashboard.php');
+assert(str_contains($hodDashContent, "if (\$userRole === 'hod')"), "hod_dashboard.php must check for hod role before rendering Add Course button");
+
+$manageCoursesContent = file_get_contents(__DIR__ . '/public/manage_courses.php');
+assert(str_contains($manageCoursesContent, "\$isHod = (\$currentRole === 'hod');"), "manage_courses.php must define isHod strictly for hod role");
+assert(str_contains($manageCoursesContent, "if (!\$isHod)"), "manage_courses.php must protect create_course handler for hod only");
+assert(str_contains($manageCoursesContent, "<?php if (\$isHod): ?>"), "manage_courses.php must only render Add New Course button & modal for HoD");
+echo "  'Add Course' option restricted strictly to Head of Department (HoD): VERIFIED\n";
+echo "  -> PASSED\n\n";
+
+echo "=== ALL 12 COMPREHENSIVE TESTS PASSED WITH 100% SUCCESS FOR RAJARATA UNIVERSITY SAMS! ===\n";

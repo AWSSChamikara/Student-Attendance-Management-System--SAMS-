@@ -5,23 +5,19 @@
       <stop offset="100%" stop-color="#f59e0b" />
     </linearGradient>
   </defs>
-
-  <!-- Shield Emblem -->
   <g transform="translate(10, 8)">
-    <path d="M 37 4 C 60 4 70 11 70 32 C 70 56 42 67 37 71 C 32 67 4 56 4 32 C 4 11 14 4 37 4 Z" fill="#1e293b" stroke="url(#goldGradWhite)" stroke-width="2.5" />
+    <path d="M 37 4 C 60 4 70 11 70 32 C 70 56 42 67 37 71 C 32 67 4 56 4 32 C 4 11 14 4 37 4 Z" fill="#560000" stroke="url(#goldGradWhite)" stroke-width="2.5" />
     <path d="M 21 40 Q 37 35 37 49 Q 37 35 53 40 L 53 53 Q 37 49 37 62 Q 37 49 21 53 Z" fill="#ffffff" opacity="0.95" />
     <path d="M 37 18 L 56 25 L 37 32 L 18 25 Z" fill="url(#goldGradWhite)" />
     <circle cx="37" cy="12" r="2.5" fill="#fef08a" />
   </g>
-
-  <!-- Typography -->
   <text x="90" y="32" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="800" fill="#ffffff" letter-spacing="-0.2">
     Rajarata University of Sri Lanka
   </text>
   <text x="90" y="52" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="11.5" font-weight="700" fill="#fbbf24" letter-spacing="0.3">
-    FACULTY OF APPLIED SCIENCES &bull; COMPUTING
+    FACULTY OF APPLIED SCIENCES &#8226; COMPUTING
   </text>
-  <text x="90" y="70" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="10.5" font-weight="500" fill="#94a3b8">
+  <text x="90" y="70" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="10.5" font-weight="500" fill="#f1d5d5">
     Attendance &amp; Examination Management (SAMS)
   </text>
 </svg>
