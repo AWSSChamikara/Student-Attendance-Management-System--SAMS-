@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="gradShield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+
+  <!-- Shield Emblem -->
+  <g transform="translate(10, 10)">
+    <!-- Outer Shield Border -->
+    <path d="M 40 5 C 65 5 75 12 75 35 C 75 62 45 74 40 78 C 35 74 5 62 5 35 C 5 12 15 5 40 5 Z" fill="url(#gradShield)" stroke="url(#goldGrad)" stroke-width="3" />
+    
+    <!-- Inner Academic Cap & Book / Circuit -->
+    <!-- Open Book -->
+    <path d="M 23 45 Q 40 40 40 55 Q 40 40 57 45 L 57 60 Q 40 55 40 70 Q 40 55 23 60 Z" fill="#ffffff" opacity="0.95" />
+    <!-- Graduation Cap -->
+    <path d="M 40 20 L 60 28 L 40 36 L 20 28 Z" fill="url(#goldGrad)" />
+    <path d="M 28 32 L 28 42 C 28 46 52 46 52 42 L 52 32" fill="none" stroke="url(#goldGrad)" stroke-width="2" />
+    <circle cx="58" cy="38" r="2" fill="url(#goldGrad)" />
+    <!-- Star of Excellence -->
+    <circle cx="40" cy="14" r="2.5" fill="#fef08a" />
+  </g>
+
+  <!-- Typography -->
+  <!-- Institution Main -->
+  <text x="100" y="34" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="19" font-weight="800" fill="#0f172a" letter-spacing="-0.3">
+    Rajarata University of Sri Lanka
+  </text>
+  
+  <!-- Faculty & Department Subtext -->
+  <text x="100" y="55" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="12" font-weight="700" fill="#d97706" letter-spacing="0.2">
+    FACULTY OF APPLIED SCIENCES &bull; DEPARTMENT OF COMPUTING
+  </text>
+  
+  <!-- System Label -->
+  <text x="100" y="74" font-family="'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" fill="#64748b">
+    Student Attendance Management System (SAMS)
+  </text>
+</svg>
