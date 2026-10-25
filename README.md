@@ -1,6 +1,8 @@
 # Student Attendance Management System (SAMS)
 ### Rajarata University of Sri Lanka (RUSL)
 ### Faculty of Applied Sciences (FAS) &bull; Department of Computing
+### Team Syntax Errors
+### Database System Project
 
 ---
 
